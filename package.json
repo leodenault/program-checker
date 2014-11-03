@@ -1,0 +1,17 @@
+{
+  "author": "Leo Denault",
+  "name": "program-checker",
+  "description": "Web application for checking the validity of a program written in a generic programming language.",
+  "version": "0.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git@heroku.com:program-checker.git"
+  },
+  "main": "server.js",
+  "dependencies": {},
+  "devDependencies": {},
+  "optionalDependencies": {},
+  "engines": {
+    "node": "*"
+  }
+}
