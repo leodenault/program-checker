@@ -7,7 +7,7 @@ var url = require('url');
 var html = null; // The HTML file to render in the HTTP response
 
 // Code that is run when the web server starts
-var port = process.env.port || 5000;
+var port = process.env.PORT || 5000;
 http.createServer(requestHandler).listen(port);
 console.log("Listening on port " + port);
 
