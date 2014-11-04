@@ -9,5 +9,4 @@ function onLoad() {
 }
 
 function onCodeSubmit() {
-	alert("WHEEEE");
 }
