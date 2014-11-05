@@ -14,7 +14,7 @@ console.log("Listening on port " + port);
 // Sends an HTML response using the HTML file loaded at server start
 // and inserts result into the HTML
 function sendHtmlResponse(response, result) {
-	html = fs.readFileSync("./program-checker.html", 'utf-8').replace("{result}", result);
+	html = fs.readFileSync("./program-checker.html", 'utf-8').replace(/\{result\}/g, result);
 	response.writeHead(200, {'Content-Type' : 'text/html'});
 	response.write(html);
 	response.end();
@@ -22,8 +22,12 @@ function sendHtmlResponse(response, result) {
 
 // Runs the program checker implemented in Lisp with the given input string
 function executeChecker(response, input) {
+	// Escape backslashes and double quotes to avoid errors when executing
+	// the child process.
+	input = input.replace(/("|\\)/g, "\\$1");
+	var command = "./program-checker \"" + input + "\"";
 	// Execute the Lisp child process
-	var child = exec("./program-checker '" + input + "'",
+	var child = exec(command,
 		function (error, stdout, stderr) {
 			if (error === null) {
 				// Retrieve the program output and render the response
