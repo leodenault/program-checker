@@ -27,15 +27,18 @@ function executeChecker(response, input) {
 	input = input.replace(/("|\\|`)/g, "\\$1");
 	var command = "./program-checker \"" + input + "\"";
 	// Execute the Lisp child process
+	console.log("Executing Lisp process");
 	var child = exec(command,
 		function (error, stdout, stderr) {
 			if (error === null) {
 				// Retrieve the program output and render the response
+				console.log("Lisp process executed successfully");
 				result = "Program output: " + stdout;
 				sendHtmlResponse(response, result);
 			} else {
 				// Render the response with the given error
-				sendHtmlResponse(response, "There was an error: " + error);
+				console.log("Lisp process failed with error: \n" + error);
+				sendHtmlResponse(response, "There was an error trying to process the code!");
 			}
 
 		});
@@ -44,6 +47,7 @@ function executeChecker(response, input) {
 // Handles an HTTP GET request
 function handleGet(request, response) {
 	path = url.parse(request.url).pathname; // Get the pathname of the requested resource
+	console.log("Handling request for resource: " + path);
 	
 	if (/\.(css|js)$/.test(path)) {
 		// Parse the content type and send it through the HTTP response
@@ -61,6 +65,7 @@ function handleGet(request, response) {
 
 // Handles HTTP requests from the client
 function requestHandler(request, response) {
+	console.log("Handling request of type " + request.method);
 	if (request.method == 'POST') {
 		var result = null;
 		var body = '';
