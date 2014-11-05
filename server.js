@@ -24,7 +24,7 @@ function sendHtmlResponse(response, result) {
 function executeChecker(response, input) {
 	// Escape backslashes and double quotes to avoid errors when executing
 	// the child process.
-	input = input.replace(/("|\\)/g, "\\$1");
+	input = input.replace(/("|\\|`)/g, "\\$1");
 	var command = "./program-checker \"" + input + "\"";
 	// Execute the Lisp child process
 	var child = exec(command,
