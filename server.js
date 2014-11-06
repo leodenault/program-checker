@@ -4,7 +4,23 @@ var qs = require('querystring');
 var fs = require('fs');
 var url = require('url');
 
-var html = null; // The HTML file to render in the HTTP response
+// Map for converting characters to be used in an HTML document
+var escapeCharacterMap = {
+	"&": "&amp;",
+	"<": "&lt;",
+	">": "&gt;",
+	'"': '&quot;',
+	"'": '&#39;',
+	"/": '&#x2F;',
+	"\n": '<br>'
+};
+
+// Helper function for escaping HTML characters
+function escapeHtml(string) {
+	return String(string).replace(/[&<>"'\/]/g, function (replacement) {
+		return escapeCharacterMap[replacement];
+	});
+}
 
 // Code that is run when the web server starts
 var port = process.env.PORT || 5000;
@@ -14,7 +30,7 @@ console.log("Listening on port " + port);
 // Sends an HTML response using the HTML file loaded at server start
 // and inserts result into the HTML
 function sendHtmlResponse(response, result) {
-	html = fs.readFileSync("./program-checker.html", 'utf-8').replace(/\{result\}/g, result);
+	var html = fs.readFileSync("./program-checker.html", 'utf-8').replace(/\{result\}/g, result);
 	response.writeHead(200, {'Content-Type' : 'text/html'});
 	response.write(html);
 	response.end();
@@ -33,7 +49,9 @@ function executeChecker(response, input) {
 			if (error === null) {
 				// Retrieve the program output and render the response
 				console.log("Lisp process executed successfully");
-				result = "Program output: " + stdout;
+				result = "Program output: " + escapeHtml(stdout);
+				console.log(stdout);
+				console.log(result)
 				sendHtmlResponse(response, result);
 			} else {
 				// Render the response with the given error

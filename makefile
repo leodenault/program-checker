@@ -11,4 +11,4 @@ program-checker: parser.lisp
 	$(ASDF_TREE) \
 	$(SYSTEM) \
 	--load parser.lisp \
-	--entry main
+	--entry parser::main
