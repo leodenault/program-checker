@@ -5,7 +5,7 @@ var fs = require('fs');
 var url = require('url');
 
 // Map for converting characters to be used in an HTML document
-var escapeCharacterMap = {
+var escapeHtmlCharacterMap = {
 	"&": "&amp;",
 	"<": "&lt;",
 	">": "&gt;",
@@ -15,11 +15,30 @@ var escapeCharacterMap = {
 	"\n": '<br>'
 };
 
+// Map for converting characters received from client input
+var escapeInputCharacterMap = {
+	"\"": "\\\"",
+	"\\": "\\\\",
+	"`": "\\`"
+};
+
 // Helper function for escaping HTML characters
 function escapeHtml(string) {
 	return String(string).replace(/[&<>"'\/]/g, function (replacement) {
-		return escapeCharacterMap[replacement];
+		return escapeHtmlCharacterMap[replacement];
 	});
+}
+
+// Helper function for escaping input characters
+function escapeInput(string) {
+	return String(string).replace(/[\"\\`]/g, function (replacement) {
+		return escapeInputCharacterMap[replacement];
+	});
+}
+
+// Helper function for formatting input as an argument to the Lisp process
+function formatArg(string) {
+	return " \"" + escapeInput(string) + "\"";
 }
 
 // Code that is run when the web server starts
@@ -36,12 +55,14 @@ function sendHtmlResponse(response, result) {
 	response.end();
 }
 
-// Runs the program checker implemented in Lisp with the given input string
-function executeChecker(response, input) {
+// Runs the program checker implemented in Lisp with the given string arguments
+function executeChecker(response, precondition, program, postcondition) {
 	// Escape backslashes and double quotes to avoid errors when executing
 	// the child process.
-	input = input.replace(/("|\\|`)/g, "\\$1");
-	var command = "./program-checker \"" + input + "\"";
+	precondition = formatArg(precondition);
+	program = formatArg(program);
+	postcondition = formatArg(postcondition);
+	var command = "./program-checker" + precondition + program + postcondition;
 	// Execute the Lisp child process
 	console.log("Executing Lisp process");
 	var child = exec(command,
@@ -87,7 +108,6 @@ function requestHandler(request, response) {
 	if (request.method == 'POST') {
 		var result = null;
 		var body = '';
-		var input = "";
 		
 		// Load the POST data
 		request.on('data', function (data) {
@@ -101,7 +121,7 @@ function requestHandler(request, response) {
 		// Feed the POST data into the program checker and render the response
 		request.on('end', function () {
 		    var post = qs.parse(body);
-			executeChecker(response, post['program']);
+			executeChecker(response, post['precondition'], post['program'], post['postcondition']);
 		});
 	} else {
 		handleGet(request, response);
