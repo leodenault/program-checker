@@ -15,12 +15,14 @@
   "usage: program-checker <precondition> <program> <postcondition>")
 (defconstant error-message
   "The program is not valid. Please verify the syntax and try again.")
+(defconstant math-operators '(#\+ #\- #\*))
 
 ;;; ******************************************
 ;;; Data structures
 ;;; ******************************************
 
 (defstruct command var expression)
+(defstruct if-command boolean then-command-list else-command-list)
 
 ;;; ******************************************
 ;;; Helper functions
@@ -35,22 +37,14 @@
     (or (null char1) (null char2)))
    (char= char1 char2)))
 
-(defun extract-strings (input starts ends)
-  (loop for i from 0 to (1- (length starts))
-   for start = (aref starts i)
-   for end = (aref ends i)
-     collect (subseq input start end)))
-
 (defun match (regex input)
-  (multiple-value-bind (start end starts ends)
+  (multiple-value-bind (start end)
       (scan regex input)
     (if (or (null start) (null end))
 	nil
-	(values
-	 (and
-	  (= 0 start)
-	  (= (length input) end))
-	 (extract-strings input starts ends)))))
+	(and
+	 (= 0 start)
+	 (= (length input) end)))))
 
 (defun read-while (stream regex)
   (format nil "~{~a~}"
@@ -65,7 +59,7 @@
 (defun parse-int (stream)
   (let ((chars (read-while stream "[\\d-]")))
     (if (match "-?\\d+" chars)
-	(values t chars))))
+	chars)))
 
 ;;; Parses a variable identifier from stream
 (defun parse-var (stream)
@@ -73,7 +67,17 @@
     (if (and
 	 (match var-regex  chars)
 	 (not (match reserved-keywords  chars)))
-	(values t chars))))
+	chars)))
+
+;;; Parses a left curly brace from the stream
+(defun parse-left-brace (stream)
+  (match "\\s*{\\s*" (read-while stream "[{\\s]")))
+
+;;; Parses a right curly brace from the stream
+(defun parse-right-brace (stream)
+  (and (read-while stream "\\s")
+       (char-eq (read-char stream nil) #\})
+       (read-while stream "\\s")))
 
 ;;; ******************************************
 ;;; Expression parsing functions
@@ -84,15 +88,9 @@
 (defun parse-math-expression (stream)
   (let ((char (read-char stream nil))
 	(result ""))
-    (if (and (or
-	      (char-eq char #\+)
-	      (char-eq char #\-)
-	      (char-eq char #\*))
-	     (multiple-value-bind (parse-result value)
-		 (parse-expression stream)
-	       (setf result value)
-	       parse-result))
-	(values t (format nil "~a~a" char result)))))
+    (if (and (member char math-operators)
+	     (setf result (parse-expression stream)))
+	(format nil "~a~a" char result))))
 
 (defun parse-complex-expression (stream)
   ;; Save the current position of the stream
@@ -100,47 +98,33 @@
 	(expr-result "")
 	(math-result ""))
     (if (and
-	 (multiple-value-bind (parse-result value)	 
-	     (parse-expression stream)
-	   (setf expr-result value)
-	   parse-result)
-	 (multiple-value-bind (parse-result value)
-	     (parse-math-expression stream)
-	   (setf math-result value)
-	   parse-result))
-
-	(values t (format nil "~a~a" expr-result math-result))
+	 (setf expr-result (parse-expression stream))
+	 (setf math-result (parse-math-expression stream)))
+	
+	(format nil "~a~a" expr-result math-result)
 
 	(progn
 	  ;; Restore the stream to its original position
 	  (stream-file-position stream stream-pos)
 	  (if (and
 	       (char-eq (read-char stream nil) #\-)
-	       (multiple-value-bind (parse-result value)
-		   (parse-expression stream)
-		 (setf expr-result value)
-		 parse-result))
-	      (values t (format nil "-~a" expr-result)))))))
+	       (setf expr-result (parse-expression stream)))
+	      (format nil "-~a" expr-result))))))
 
 (defun parse-parenthesized-expression (stream)
   (let ((result ""))
     (if (and
 	 (char-eq (read-char stream nil) #\()
-	 (multiple-value-bind (parse-result value)
-	     (parse-complex-expression stream)
-	   (setf result value)
-	   parse-result)
+	 (setf result (parse-complex-expression stream))
 	 (char-eq (read-char stream nil) #\)))
-       (values t (format nil "(~a)" result)))))
+	(format nil "(~a)" result))))
 
 (defun parse-expression (stream)
   (let ((char (format nil "~a" (peek-char nil stream nil))))
-    (multiple-value-bind (parse-result value)
-	(cond
-	  ((match "[\\d-]" char) (parse-int stream))
-	  ((match "\\w" char) (parse-var stream))
-	  ((match "\\(" char) (parse-parenthesized-expression stream)))
-      (values parse-result value))))
+    (cond
+      ((match "[\\d-]" char) (parse-int stream))
+      ((match "\\w" char) (parse-var stream))
+      ((match "\\(" char) (parse-parenthesized-expression stream)))))
 
 ;;; ******************************************
 ;;; Boolean parsing functions
@@ -148,78 +132,105 @@
 
 (defun parse-compound-boolean (stream)
   (let ((char (read-char stream nil)))
-    (and
-     (or (char-eq char #\&)
-	 (and (char-eq char #\|)
-	      (char-eq (read-char stream nil) #\|)))
-     (parse-boolean stream))))
+    (cond ((char-eq char #\&)
+	   (format nil "∧~a" (parse-boolean stream)))
+	  ((and (char-eq char #\|)
+	       (char-eq (read-char stream nil) #\|))
+	  (format nil "∨~a"(parse-boolean stream))))))
 
 (defun parse-complex-boolean (stream)
   (let ((char (peek-char nil stream nil)))
     (if (char-eq char #\!)
-	(and
-	 (char-eq (read-char stream nil) #\!)
-	 (parse-boolean stream))
+	(progn
+	  (read-char stream nil)
+	  (format nil "¬~a" (parse-boolean stream)))
 	;; Save the position of the stream for look-ahead
-	(let ((stream-pos (stream-file-position stream)))
-	  (if (parse-expression stream)
-	      (and
-	       (char-eq (read-char stream nil) #\<)
-	       (parse-expression stream))
+	(let ((stream-pos (stream-file-position stream))
+	      (result ""))
+	  (if (setf result (parse-expression stream))
+	      (if (char-eq (read-char stream nil) #\<)
+		  (format nil "~a<~a" result (parse-expression stream)))
 	      (progn
 		;; Restore the stream at its original position
 		(stream-file-position stream stream-pos)
-		(and (parse-boolean stream)
-		     (parse-compound-boolean stream))))))))
+		(if (setf result (parse-boolean stream))
+		    (format nil "~a~a"
+			    result (parse-compound-boolean stream)))))))))
 
 (defun parse-boolean (stream)
   (if (char-eq (peek-char nil stream nil) #\()
-      (and
-       (char-eq (read-char stream nil) #\()
-       (parse-complex-boolean stream)
-       (char-eq (read-char stream nil) #\)))
+      (let ((result ""))
+	(if (and
+	     (char-eq (read-char stream nil) #\()
+	     (setf result (parse-complex-boolean stream))
+	     (char-eq (read-char stream nil) #\)))
+	    (format nil "(~a)" result)))
       (let ((value (read-while stream "[truefals]")))
-	(or (match "true" value)
-	    (match "false" value)))))
+	(cond ((match "true" value) "⊤")
+	      ((match "false" value) "⊥")))))
 
 ;;; ******************************************
 ;;; Command parsing functions
 ;;; ******************************************
 
-(defun parse-simple-command (stream)
+(defun parse-assignment (stream)
   (let ((comm (make-command)))
     (if
      (and
-      (multiple-value-bind (var-parsed var)
-	  (parse-var stream)
-	(setf (command-var comm) var)
-	var-parsed)
+      (setf (command-var comm) (parse-var stream))
       (char-eq (read-char stream nil) #\=)
-      (multiple-value-bind (expr-parsed expr)
-	  (parse-expression stream)
-	(setf (command-expression comm) expr)
-	expr-parsed))
+      (setf (command-expression comm) (parse-expression stream)))
      comm)))
 
+(defun parse-if (stream)
+  (let ((chars (progn
+		 (format nil "~a~a"
+			 (read-char stream nil)
+			 (read-char stream nil))))
+	(comm (make-if-command)))
+    (if (and (match "if" chars)
+	     (read-while stream "\\s")
+	     (setf (if-command-boolean comm) (parse-boolean stream))
+	     (parse-left-brace stream)
+	     (setf (if-command-then-command-list comm)
+		   (parse-command-list stream))
+	     (parse-right-brace stream)
+	     (match "else" (read-while stream "[else]"))
+	     (parse-left-brace stream)
+	     (setf (if-command-else-command-list comm)
+		   (parse-command-list stream))
+	     (parse-right-brace stream))
+	comm)))
+
 (defun parse-command (stream)
+  ;; Read the first few characters and then reset the stream
+  ;; to know how to parse the commands
+  (let ((stream-pos (stream-file-position stream))
+	(chars (read-while stream "[\\w\\d]")))
+    (stream-file-position stream stream-pos)
+    (cond
+      ((match "if" chars) (parse-if stream))
+      (t (parse-assignment stream)))))
+
+(defun parse-command-list (stream)
   (loop
-     for comm = (parse-simple-command stream)
+     for comm = (parse-command stream)
      for char = (progn (read-while stream "\\s")
-		       (read-char stream nil))
-     for next-char = (progn (read-while stream "\\s")
-			    (peek-char nil stream nil))
+		       (peek-char nil stream nil))
      for is-semi-colon = (char-eq char #\;)
-     for null-char = (null char)
-       
+     for is-command = (command-p comm)
+     for continue = t
+
+     while (not (null comm))
      collect comm
-     if (or (null comm)
-	    (not (or is-semi-colon null-char)))
-     return nil
-       
-     while (not (or
-		 null-char
-		 (and is-semi-colon
-		      (null next-char))))))
+     
+     do (if is-command
+	    (if is-semi-colon
+		(read-char stream nil)
+		(setf continue nil)))
+
+     do (read-while stream "\\s")
+     while continue))
 
 ;;; ******************************************
 ;;; Command bubbling functions
@@ -231,6 +242,16 @@
    prop-cond
    (command-expression command)))
 
+(defun bubble-if (command prop-cond)
+  (let ((a1 (bubble-commands
+	     (reverse (if-command-then-command-list command))
+	     prop-cond))
+	(a2 (bubble-commands
+	     (reverse (if-command-else-command-list command))
+	     prop-cond))
+	(bool (if-command-boolean command)))
+    (format nil "(~a→~a)∧(¬~a→~a)" bool a1 bool a2)))
+
 (defun bubble-commands (commands postcondition)
   (if (null commands)
       nil
@@ -239,7 +260,10 @@
 	(loop for command in reverse-commands
 	   if (command-p command)
 	   do (setf current-prop-condition
-		    (bubble-assignment command current-prop-condition)))
+		    (bubble-assignment command current-prop-condition))
+	   if (if-command-p command)
+	   do (setf current-prop-condition
+		    (bubble-if command current-prop-condition)))
 	current-prop-condition)))
 
 ;;; ******************************************
@@ -247,15 +271,20 @@
 ;;; ******************************************
 
 (defun build-parse-tree (input)
-  (let ((stream (make-string-input-stream input)))
-	(parse-command stream)))
+  (let* ((stream (make-string-input-stream input))
+	 (comm-list (parse-command-list stream)))
+    (if (and (not (null comm-list))
+	     (null (read-char stream nil)))
+	comm-list)))
 
 (defun check-program (precondition program postcondition)
   (let ((result 
-	 (bubble-commands (build-parse-tree program) postcondition)))
+	 (bubble-commands
+	  (build-parse-tree program)
+	  (format nil "(~a)" postcondition))))
     (if (null result)
 	nil
-	(format nil "~a -> ~a" precondition result))))
+	(format nil "(~a) → ~a" precondition result))))
 
 (defun main (argv)
   (if (not (= (length argv) 4))
