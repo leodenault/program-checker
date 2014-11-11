@@ -146,16 +146,30 @@
 	  (format nil "¬~a" (parse-boolean stream)))
 	;; Save the position of the stream for look-ahead
 	(let ((stream-pos (stream-file-position stream))
+	      (op-char nil)
 	      (result ""))
 	  (if (setf result (parse-expression stream))
-	      (if (char-eq (read-char stream nil) #\<)
-		  (format nil "~a<~a" result (parse-expression stream)))
 	      (progn
-		;; Restore the stream at its original position
-		(stream-file-position stream stream-pos)
-		(if (setf result (parse-boolean stream))
-		    (format nil "~a~a"
-			    result (parse-compound-boolean stream)))))))))
+		(setf op-char (read-char stream nil))
+		(if
+		  (or (char-eq op-char #\<) (char-eq op-char #\>))
+		  (format nil "~a~a~a"
+			  result op-char (parse-expression stream))
+		  (let ((next-char (read-char stream nil)))
+		    (cond
+		      ((and (char-eq op-char #\!) (char-eq next-char #\=))
+		       (format nil "¬(~a=~a)"
+			       result (parse-expression stream)))
+		      ((and (char-eq op-char #\=) (char-eq next-char #\=))
+		       (format nil "~a=~a"
+			       result (parse-expression stream)))
+		      (t
+		       (progn
+			 ;; Restore the stream at its original position
+			 (stream-file-position stream stream-pos)
+			 (if (setf result (parse-boolean stream))
+			     (format nil "~a~a"
+				     result (parse-compound-boolean stream))))))))))))))
 
 (defun parse-boolean (stream)
   (if (char-eq (peek-char nil stream nil) #\()
