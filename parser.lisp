@@ -18,11 +18,19 @@
 (defconstant math-operators '(#\+ #\- #\*))
 
 ;;; ******************************************
+;;; Global Variables
+;;; ******************************************
+
+(defparameter *invariants* '())
+(defparameter *proofs* '())
+
+;;; ******************************************
 ;;; Data structures
 ;;; ******************************************
 
 (defstruct command var expression)
 (defstruct if-command boolean then-command-list else-command-list)
+(defstruct while-command boolean command-list)
 
 ;;; ******************************************
 ;;; Helper functions
@@ -215,6 +223,18 @@
 	     (parse-right-brace stream))
 	comm)))
 
+(defun parse-while (stream)
+  (let ((chars (read-while stream "[while]"))
+	(comm (make-while-command)))
+    (if (and (match "while" chars)
+	     (read-while stream "\\s")
+	     (setf (while-command-boolean comm) (parse-boolean stream))
+	     (parse-left-brace stream)
+	     (setf (while-command-command-list comm)
+		   (parse-command-list stream))
+	     (parse-right-brace stream))
+	comm)))
+
 (defun parse-command (stream)
   ;; Read the first few characters and then reset the stream
   ;; to know how to parse the commands
@@ -223,6 +243,7 @@
     (stream-file-position stream stream-pos)
     (cond
       ((match "if" chars) (parse-if stream))
+      ((match "while" chars) (parse-while stream))
       (t (parse-assignment stream)))))
 
 (defun parse-command-list (stream)
@@ -265,18 +286,36 @@
 	(bool (if-command-boolean command)))
     (format nil "(~a->~a)/~a(~a~a->~a)" bool a1 #\\ #\~ bool a2)))
 
-(defun bubble-commands (commands postcondition)
+(defun bubble-partial-while (command prop-cond &optional (invariant "inv"))
+  (let ((implied (bubble-commands
+		  (reverse (while-command-command-list command))
+		  invariant))
+	(bool (while-command-boolean command)))
+    (push (format nil "(~a/~a~a~a)->(~a)"
+		  invariant #\\ #\~ bool prop-cond) *proofs*)
+    (push (format nil "(~a/~a~a)->(~a)"
+		  invariant #\\ bool implied) *proofs*)
+    invariant))
+
+(defun bubble-commands (commands postcondition
+			&optional (invariants '()))
   (if (null commands)
       nil
       (let ((reverse-commands (reverse commands))
-	    (current-prop-condition postcondition))
+	    (current-prop-condition postcondition)
+	    (rev-invariants (reverse invariants)))
 	(loop for command in reverse-commands
 	   if (command-p command)
 	   do (setf current-prop-condition
 		    (bubble-assignment command current-prop-condition))
 	   if (if-command-p command)
 	   do (setf current-prop-condition
-		    (bubble-if command current-prop-condition)))
+		    (bubble-if command current-prop-condition))
+	   if (while-command-p command)
+	   do (progn
+		(setf current-prop-condition
+		      (bubble-partial-while
+		       command current-prop-condition))))
 	current-prop-condition)))
 
 ;;; ******************************************
@@ -290,14 +329,16 @@
 	     (null (read-char stream nil)))
 	comm-list)))
 
-(defun check-program (precondition program postcondition)
+(defun check-program (precondition program postcondition &rest invariants)
+  (setf *proofs* '())
   (let ((result 
 	 (bubble-commands
 	  (build-parse-tree program)
-	  (format nil "(~a)" postcondition))))
+	  (format nil "(~a)" postcondition)
+	  invariants)))
     (if (null result)
 	nil
-	(format nil "(~a) -> ~a" precondition result))))
+	(format nil "(~a) -> ~a~{~%~a~}" precondition result *proofs*))))
 
 (defun main (argv)
   (if (not (= (length argv) 4))

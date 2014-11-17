@@ -28,8 +28,7 @@ var escapeInputCharacterMap = {
 
 // Helper function for escaping HTML characters
 function escapeHtml(string) {
-	return String(string).replace(/(->)|(\/\\)|(\\\/)|([&<>"'\/~])/g, function (replacement) {
-		console.log(replacement)
+	return String(string).replace(/(->)|(\/\\)|(\\\/)|([\n&<>"'\/~])/g, function (replacement) {
 		return escapeHtmlCharacterMap[replacement];
 	});
 }
@@ -75,9 +74,7 @@ function executeChecker(response, precondition, program, postcondition) {
 			if (error === null) {
 				// Retrieve the program output and render the response
 				console.log("Lisp process executed successfully");
-				result = "Program output: " + escapeHtml(stdout);
-				console.log(stdout);
-				console.log(result)
+				result = escapeHtml("Program output: \n" + stdout);
 				sendHtmlResponse(response, result);
 			} else {
 				// Render the response with the given error
