@@ -12,7 +12,8 @@ var escapeHtmlCharacterMap = {
 	'"': '&quot;',
 	"'": '&#39;',
 	"/": '&#x2F;',
-	"\n": '<br>'
+	"\n": '<br>',
+	"->": "→"
 };
 
 // Map for converting characters received from client input
@@ -24,7 +25,7 @@ var escapeInputCharacterMap = {
 
 // Helper function for escaping HTML characters
 function escapeHtml(string) {
-	return String(string).replace(/[&<>"'\/]/g, function (replacement) {
+	return String(string).replace(/([&<>"'\/])|(->)/g, function (replacement) {
 		return escapeHtmlCharacterMap[replacement];
 	});
 }
