@@ -10,7 +10,7 @@
 ;;; ******************************************
 
 (defconstant var-regex "[a-zA-Z](?:\\d|\\w)*")
-(defconstant reserved-keywords "true|false|if|else|while")
+(defconstant reserved-keywords "true|false|if|else|while|T|F")
 (defconstant usage-message
   "usage: program-checker <precondition> <program> <postcondition>")
 (defconstant error-message
@@ -133,17 +133,17 @@
 (defun parse-compound-boolean (stream)
   (let ((char (read-char stream nil)))
     (cond ((char-eq char #\&)
-	   (format nil "∧~a" (parse-boolean stream)))
+	   (format nil "/~a~a" #\\ (parse-boolean stream)))
 	  ((and (char-eq char #\|)
 	       (char-eq (read-char stream nil) #\|))
-	  (format nil "∨~a"(parse-boolean stream))))))
+	  (format nil "~a/~a" #\\ (parse-boolean stream))))))
 
 (defun parse-complex-boolean (stream)
   (let ((char (peek-char nil stream nil)))
     (if (char-eq char #\!)
 	(progn
 	  (read-char stream nil)
-	  (format nil "¬~a" (parse-boolean stream)))
+	  (format nil "~a~a" #\~ (parse-boolean stream)))
 	;; Save the position of the stream for look-ahead
 	(let ((stream-pos (stream-file-position stream))
 	      (op-char nil)
@@ -158,7 +158,7 @@
 		  (let ((next-char (read-char stream nil)))
 		    (cond
 		      ((and (char-eq op-char #\!) (char-eq next-char #\=))
-		       (format nil "¬(~a=~a)"
+		       (format nil "~a(~a=~a)" #\~
 			       result (parse-expression stream)))
 		      ((and (char-eq op-char #\=) (char-eq next-char #\=))
 		       (format nil "~a=~a"
@@ -180,8 +180,8 @@
 	     (char-eq (read-char stream nil) #\)))
 	    (format nil "(~a)" result)))
       (let ((value (read-while stream "[truefals]")))
-	(cond ((match "true" value) "⊤")
-	      ((match "false" value) "⊥")))))
+	(cond ((match "true" value) "T")
+	      ((match "false" value) "F")))))
 
 ;;; ******************************************
 ;;; Command parsing functions
@@ -264,7 +264,7 @@
 	     (reverse (if-command-else-command-list command))
 	     prop-cond))
 	(bool (if-command-boolean command)))
-    (format nil "(~a→~a)∧(¬~a→~a)" bool a1 bool a2)))
+    (format nil "(~a->~a)/~a(~a~a->~a)" bool a1 #\\ #\~ bool a2)))
 
 (defun bubble-commands (commands postcondition)
   (if (null commands)
@@ -298,7 +298,7 @@
 	  (format nil "(~a)" postcondition))))
     (if (null result)
 	nil
-	(format nil "(~a) → ~a" precondition result))))
+	(format nil "(~a) -> ~a" precondition result))))
 
 (defun main (argv)
   (if (not (= (length argv) 4))
