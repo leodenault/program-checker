@@ -12,9 +12,10 @@
 (defconstant var-regex "[a-zA-Z](?:\\d|\\w)*")
 (defconstant reserved-keywords "true|false|if|else|while|T|F")
 (defconstant usage-message
-  "usage: program-checker <precondition> <program> <postcondition>")
+  "usage: program-checker <precondition> <program> <postcondition> [<variants>]")
 (defconstant error-message
   "The program is not valid. Please verify the syntax and try again.")
+(defconstant inv-var-error "The numbers of invariants and variants don't match. Please ensure to input equal numbers of each.")
 (defconstant math-operators '(#\+ #\- #\*))
 
 ;;; ******************************************
@@ -22,7 +23,9 @@
 ;;; ******************************************
 
 (defparameter *invariants* '())
-(defparameter *proofs* '())
+(defparameter *variants* '())
+(defparameter *partial-proofs* '())
+(defparameter *total-proofs* '())
 
 ;;; ******************************************
 ;;; Data structures
@@ -295,18 +298,34 @@
 		    invariant))
 	  (bool (while-command-boolean command)))
       (push (format nil "(~a/~a~a~a)->(~a)"
-		    invariant #\\ #\~ bool prop-cond) *proofs*)
+		    invariant #\\ #\~ bool prop-cond) *partial-proofs*)
       (push (format nil "(~a/~a~a)->(~a)"
-		    invariant #\\ bool implied) *proofs*)
+		    invariant #\\ bool implied) *partial-proofs*)
       invariant)))
 
+(defun bubble-total-while (command prop-cond)
+  (let ((invariant (pop *invariants*))
+	(variant (pop *variants*)))
+    (if (null invariant)
+	(setf invariant "inv"))
+    (if (null variant)
+	(setf variant "var"))
+    (let ((implied (bubble-commands
+		    (while-command-command-list command)
+		    (format nil "~a/~a0<=~a<init" invariant #\\ variant)))
+	  (bool (while-command-boolean command)))
+      (push (format nil "(~a/~a~a~a)->(~a)"
+		    invariant #\\ #\~ bool prop-cond) *total-proofs*)
+      (push (format nil "(~a/~a~a/~a0<=~a=init)->(~a)"
+		    invariant #\\ bool #\\ variant implied) *total-proofs*)
+      (format nil "~a/~a0<=~a" invariant #\\ variant))))
+
 (defun bubble-commands (commands postcondition
-			&optional (invariants '()))
+			&optional (total-correctness nil))
   (if (null commands)
       nil
       (let ((reverse-commands (reverse commands))
-	    (current-prop-condition postcondition)
-	    (rev-invariants (reverse invariants)))
+	    (current-prop-condition postcondition))
 	(loop for command in reverse-commands
 	   if (command-p command)
 	   do (setf current-prop-condition
@@ -317,8 +336,11 @@
 	   if (while-command-p command)
 	   do (progn
 		(setf current-prop-condition
-		      (bubble-partial-while
-		       command current-prop-condition))))
+		      (if (null total-correctness)
+			  (bubble-partial-while
+			   command current-prop-condition)
+			  (bubble-total-while
+			   command current-prop-condition)))))
 	current-prop-condition)))
 
 ;;; ******************************************
@@ -332,29 +354,46 @@
 	     (null (read-char stream nil)))
 	comm-list)))
 
-(defun check-program (precondition program postcondition invariants)
-  (setf *proofs* '())
+(defun check-program (precondition program postcondition invariants variants)
+  (setf *partial-proofs* '())
+  (setf *total-proofs* '())
   (setf *invariants* (reverse invariants))
-  (let ((result 
-	 (bubble-commands
-	  (build-parse-tree program)
-	  (format nil "(~a)" postcondition)
-	  (reverse invariants))))
-    (if (null result)
-	nil
-	(format nil "(~a) -> ~a~{~%~a~}" precondition result *proofs*))))
+  (setf *variants* (reverse variants))
+  (let* ((parse-tree (build-parse-tree program))
+	 (invariants-copy (copy-list *invariants*))
+	 (partial-correctness 
+	  (bubble-commands parse-tree
+	   (format nil "(~a)" postcondition))))
+    (setf *invariants* (copy-list invariants-copy))
+    (let ((total-correctness 
+	  (bubble-commands parse-tree
+	    (format nil "(~a)" postcondition) t)))
+      (if (or (null partial-correctness) (null total-correctness))
+	  nil
+	  (format nil "Partial correctness proofs:~%(~a) -> ~a~{~%~a~}~%~%Total correctness proofs:~%(~a) -> ~a~{~%~a~}"
+		  precondition partial-correctness *partial-proofs*
+		  precondition total-correctness *total-proofs*)))))
 
 (defun main (argv)
   (if (not (>= (length argv) 4))
       (progn (write-line usage-message)
 	     (sb-ext:exit))
-      (let* ((precondition (nth 1 argv))
+      (let ((precondition (nth 1 argv))
 	     (program (nth 2 argv))
 	     (postcondition (nth 3 argv))
-	     (invariants (subseq argv 4))
-	     (result (check-program
-		      precondition program postcondition invariants)))
-	(if (null result)
-	    (write-line error-message)
-	    (write-line result))
-	(sb-ext:exit))))
+	     (inv-var-length (- (length argv) 4)))
+	(if (not (= (mod inv-var-length 2) 0))
+	    (write-line inv-var-error)
+	    (let* ((inv-length (/ inv-var-length 2))
+		  (invariants (subseq argv 4 (+ inv-length 4)))
+		  (variants (subseq argv (+ inv-length 4) (length argv)))
+		  (result (check-program
+			   precondition
+			   program
+			   postcondition
+			   invariants
+			   variants)))
+	      (if (null result)
+		  (write-line error-message)
+		  (write-line result))
+	      (sb-ext:exit))))))

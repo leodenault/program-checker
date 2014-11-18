@@ -1,11 +1,11 @@
 window.addEventListener("load", onLoad)
 
 var form;
-var invariantParent;
+var invVarParent;
 
 function onLoad() {
 	form = document.getElementById("programForm");
-	invariantParent = document.getElementById("invariants");
+	invVarParent = document.getElementById("invariants");
 	var program = document.getElementById("program");
 	program.addEventListener("input", countWhileLoops);
 	
@@ -18,22 +18,29 @@ function countWhileLoops() {
 	
 	var whiles = (text.match(/(\s+|^)while((\s*\()|\s+((true)|(false)))/g) || []).length;
 	
-	if (whiles != invariantParent.childNodes.length) {
-		generateInvariantInputs(whiles);
+	if (whiles != invVarParent.childNodes.length * 2) {
+		generateInvVarInputs(whiles);
 	}
 }
 
-function generateInvariantInputs(count) {
-	while (invariantParent.hasChildNodes()) {
-		invariantParent.removeChild(invariantParent.childNodes[0]);
+function generateInvVarInputs(count) {
+	while (invVarParent.hasChildNodes()) {
+		invVarParent.removeChild(invVarParent.childNodes[0]);
 	}
 	
 	for (var i = 0; i < count; i++) {
-		var input = document.createElement("input");
-		input.name = "invariant" + i;
-		input.type = "text";
-		input.placeholder = "Invariant " + (i + 1);
-		input.required = true;
-		invariantParent.appendChild(input);
+		var invInput = document.createElement("input");
+		invInput.name = "invariant" + i;
+		invInput.type = "text";
+		invInput.placeholder = "Invariant " + (i + 1);
+		invInput.required = true;
+		invVarParent.appendChild(invInput);
+		
+		var varInput = document.createElement("input");
+		varInput.name = "variant" + i;
+		varInput.type = "text";
+		varInput.placeholder = "Variant " + (i + 1);
+		varInput.required = true;
+		invVarParent.appendChild(varInput);
 	}
 }

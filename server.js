@@ -60,21 +60,21 @@ function sendHtmlResponse(response, result) {
 }
 
 // Runs the program checker implemented in Lisp with the given string arguments
-function executeChecker(response, precondition, program, postcondition, invariants) {
+function executeChecker(response, precondition, program, postcondition, invariants, variants) {
 	// Escape backslashes and double quotes to avoid errors when executing
 	// the child process.
 	precondition = formatArg(precondition);
 	program = formatArg(program);
 	postcondition = formatArg(postcondition);
-	var command = "./program-checker" + precondition + program + postcondition + invariants;
-	console.log("COMMAND: " + command);
+	var command = "./program-checker" + precondition + program + postcondition + invariants + variants;
 	// Execute the Lisp child process
-	console.log("Executing Lisp process");
+	console.log("Executing Lisp process with command: " + command);
 	var child = exec(command,
 		function (error, stdout, stderr) {
 			if (error === null) {
 				// Retrieve the program output and render the response
 				console.log("Lisp process executed successfully");
+				console.log(stdout);
 				result = escapeHtml("Program output: \n" + stdout);
 				sendHtmlResponse(response, result);
 			} else {
@@ -124,23 +124,24 @@ function requestHandler(request, response) {
 		// Feed the POST data into the program checker and render the response
 		request.on('end', function () {
 		    var post = qs.parse(body);
-			executeChecker(response, post['precondition'], post['program'], post['postcondition'], extractInvariants(post));
+			executeChecker(response, post['precondition'], post['program'],
+				post['postcondition'], extractMultiField("invariant", post), extractMultiField("variant", post));
 		});
 	} else {
 		handleGet(request, response);
 	}
 }
 
-// Extracts invariants from the POST data and formats them into arguments
-// usable by the Lisp process
-function extractInvariants(post) {
-	var currentInvariant;
-	var invariantArgs = "";
+// Extracts a field that is repeated multiple times in the HTML form.
+// The fields will have a base name followed by a numeric identifier
+function extractMultiField(baseName, post) {
+	var currentField;
+	var fieldArgs = "";
 	
-	for (var i = 0; (currentInvariant = post['invariant' + i]) !== undefined; i++) {
-		invariantArgs += formatArg(currentInvariant);
+	for (var i = 0; (currentField = post[baseName + i]) !== undefined; i++) {
+		fieldArgs += formatArg(currentField);
 	}
 	
-	return invariantArgs;
+	return fieldArgs;
 } 
 
