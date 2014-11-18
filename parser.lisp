@@ -332,7 +332,7 @@
 	     (null (read-char stream nil)))
 	comm-list)))
 
-(defun check-program (precondition program postcondition &rest invariants)
+(defun check-program (precondition program postcondition invariants)
   (setf *proofs* '())
   (setf *invariants* (reverse invariants))
   (let ((result 
@@ -345,13 +345,15 @@
 	(format nil "(~a) -> ~a~{~%~a~}" precondition result *proofs*))))
 
 (defun main (argv)
-  (if (not (= (length argv) 4))
+  (if (not (>= (length argv) 4))
       (progn (write-line usage-message)
 	     (sb-ext:exit))
       (let* ((precondition (nth 1 argv))
 	     (program (nth 2 argv))
 	     (postcondition (nth 3 argv))
-	     (result (check-program precondition program postcondition)))
+	     (invariants (subseq argv 4))
+	     (result (check-program
+		      precondition program postcondition invariants)))
 	(if (null result)
 	    (write-line error-message)
 	    (write-line result))

@@ -60,13 +60,14 @@ function sendHtmlResponse(response, result) {
 }
 
 // Runs the program checker implemented in Lisp with the given string arguments
-function executeChecker(response, precondition, program, postcondition) {
+function executeChecker(response, precondition, program, postcondition, invariants) {
 	// Escape backslashes and double quotes to avoid errors when executing
 	// the child process.
 	precondition = formatArg(precondition);
 	program = formatArg(program);
 	postcondition = formatArg(postcondition);
-	var command = "./program-checker" + precondition + program + postcondition;
+	var command = "./program-checker" + precondition + program + postcondition + invariants;
+	console.log("COMMAND: " + command);
 	// Execute the Lisp child process
 	console.log("Executing Lisp process");
 	var child = exec(command,
@@ -123,10 +124,23 @@ function requestHandler(request, response) {
 		// Feed the POST data into the program checker and render the response
 		request.on('end', function () {
 		    var post = qs.parse(body);
-			executeChecker(response, post['precondition'], post['program'], post['postcondition']);
+			executeChecker(response, post['precondition'], post['program'], post['postcondition'], extractInvariants(post));
 		});
 	} else {
 		handleGet(request, response);
 	}
 }
+
+// Extracts invariants from the POST data and formats them into arguments
+// usable by the Lisp process
+function extractInvariants(post) {
+	var currentInvariant;
+	var invariantArgs = "";
+	
+	for (var i = 0; (currentInvariant = post['invariant' + i]) !== undefined; i++) {
+		invariantArgs += formatArg(currentInvariant);
+	}
+	
+	return invariantArgs;
+} 
 
