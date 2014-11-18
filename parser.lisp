@@ -278,24 +278,27 @@
 
 (defun bubble-if (command prop-cond)
   (let ((a1 (bubble-commands
-	     (reverse (if-command-then-command-list command))
+	     (if-command-then-command-list command)
 	     prop-cond))
 	(a2 (bubble-commands
-	     (reverse (if-command-else-command-list command))
+	     (if-command-else-command-list command)
 	     prop-cond))
 	(bool (if-command-boolean command)))
     (format nil "(~a->~a)/~a(~a~a->~a)" bool a1 #\\ #\~ bool a2)))
 
-(defun bubble-partial-while (command prop-cond &optional (invariant "inv"))
-  (let ((implied (bubble-commands
-		  (reverse (while-command-command-list command))
-		  invariant))
-	(bool (while-command-boolean command)))
-    (push (format nil "(~a/~a~a~a)->(~a)"
-		  invariant #\\ #\~ bool prop-cond) *proofs*)
-    (push (format nil "(~a/~a~a)->(~a)"
-		  invariant #\\ bool implied) *proofs*)
-    invariant))
+(defun bubble-partial-while (command prop-cond)
+  (let ((invariant (pop *invariants*)))  
+    (if (null invariant)
+	(setf invariant "inv"))  
+    (let ((implied (bubble-commands
+		    (while-command-command-list command)
+		    invariant))
+	  (bool (while-command-boolean command)))
+      (push (format nil "(~a/~a~a~a)->(~a)"
+		    invariant #\\ #\~ bool prop-cond) *proofs*)
+      (push (format nil "(~a/~a~a)->(~a)"
+		    invariant #\\ bool implied) *proofs*)
+      invariant)))
 
 (defun bubble-commands (commands postcondition
 			&optional (invariants '()))
@@ -331,11 +334,12 @@
 
 (defun check-program (precondition program postcondition &rest invariants)
   (setf *proofs* '())
+  (setf *invariants* (reverse invariants))
   (let ((result 
 	 (bubble-commands
 	  (build-parse-tree program)
 	  (format nil "(~a)" postcondition)
-	  invariants)))
+	  (reverse invariants))))
     (if (null result)
 	nil
 	(format nil "(~a) -> ~a~{~%~a~}" precondition result *proofs*))))
