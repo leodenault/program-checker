@@ -10,20 +10,29 @@
 	</head>
 
 	<body>
-		<form id="programForm" action="#" method="post">
-			<div>
-				<input name="precondition" required type="text" placeholder="Precondition"></input>
-			</div>
-			<div>
-				<textarea id="program" name="program" required rows="20" cols="50" placeholder="Write your program here!"></textarea>
-				<div id="invariants"></div>
-			</div>
-			<div>
-				<input name="postcondition" required type="text" placeholder="Postcondition"></input>
-			</div>
-			<input type="submit"/>
-		</form>
+		<h1>Program Checker</h1>
+	
+		<div>
+			<form id="programForm" action="#" method="post">
+				<div>
+					<input name="precondition" class="condition-input" required type="text" placeholder="Precondition"></input>
+				</div>
+				<div>
+					<div class="program-block">
+						<textarea id="program" name="program" required rows="20" cols="50" placeholder="Write your program here!"></textarea>
+					</div>
+					<div id="invVarBlock" class="inv-var-block-hidden">
+						<h2>Variants and Invariants</h2>
+						<div id="invariants"></div>
+					</div>
+				</div>
+				<div>
+					<input name="postcondition" class="condition-input" required type="text" placeholder="Postcondition"></input>
+				</div>
+				<input type="submit"/>
+			</form>
+		</div>
 		
-		<p>{result}</p>
+		<div>{result}</div>
 	</body>
 </html>

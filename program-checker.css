@@ -1,0 +1,22 @@
+.program-block, .inv-var-block {
+	display: inline-block;
+}
+
+.inv-var-block {
+	vertical-align: top;
+	overflow: scroll;
+	height: 40%;
+	min-width: 360px;
+}
+
+.inv-var-block-hidden {
+	display: none;
+}
+
+#program {
+	height:40%;
+}
+
+.condition-input {
+	margin: 10px 0 10px 0;
+}

@@ -2,10 +2,12 @@ window.addEventListener("load", onLoad)
 
 var form;
 var invVarParent;
+var invVarBlock;
 
 function onLoad() {
 	form = document.getElementById("programForm");
 	invVarParent = document.getElementById("invariants");
+	invVarBlock = document.getElementById("invVarBlock");
 	var program = document.getElementById("program");
 	program.addEventListener("input", countWhileLoops);
 	
@@ -26,6 +28,12 @@ function countWhileLoops() {
 function generateInvVarInputs(count) {
 	while (invVarParent.hasChildNodes()) {
 		invVarParent.removeChild(invVarParent.childNodes[0]);
+	}
+	
+	if (count > 0) {
+		invVarBlock.className = "inv-var-block";
+	} else {
+		invVarBlock.className = "inv-var-block-hidden";
 	}
 	
 	for (var i = 0; i < count; i++) {
