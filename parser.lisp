@@ -170,7 +170,8 @@
 		(read-while stream "\\s")
 		(setf op-char (read-char stream nil))
 		(if
-		  (or (char-eq op-char #\<) (char-eq op-char #\>))
+		  (and (or (char-eq op-char #\<) (char-eq op-char #\>))
+		       (not (char-eq (peek-char nil stream nil) #\=)))
 		  (progn
 		    (read-while stream "\\s")
 		    (format nil "~a~a~a"
@@ -178,8 +179,14 @@
 		  (let ((next-char (read-char stream nil)))
 		    (read-while stream "\\s")
 		    (cond
+		      ((and (char-eq op-char #\<) (char-eq next-char #\=))
+		       (format nil "~a<=~a"
+			       result (parse-expression stream)))
+		      ((and (char-eq op-char #\>) (char-eq next-char #\=))
+		       (format nil "~a>=~a"
+			       result (parse-expression stream)))
 		      ((and (char-eq op-char #\!) (char-eq next-char #\=))
-		       (format nil "~a(~a=~a)" #\~
+		       (format nil "~a!=~a"
 			       result (parse-expression stream)))
 		      ((and (char-eq op-char #\=) (char-eq next-char #\=))
 		       (format nil "~a=~a"
