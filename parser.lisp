@@ -297,9 +297,15 @@
 
 (defun bubble-assignment (command prop-cond)
   (regex-replace-all 
-   (command-var command)
+   (concatenate 'string
+		"([^\\w]|[\\s])"
+		(command-var command)
+		"([^\\w]|[\\s])")
    prop-cond
-   (command-expression command)))
+   (concatenate 'string
+		"\\{1}"
+		(command-expression command)
+		"\\{2}")))
 
 (defun bubble-if (command prop-cond)
   (let ((a1 (bubble-commands
