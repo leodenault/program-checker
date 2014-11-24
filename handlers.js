@@ -18,7 +18,7 @@ function countWhileLoops() {
 	
 	var whiles = (text.match(/(\s+|^)while((\s*\()|\s+((true)|(false)))/g) || []).length;
 	
-	if (whiles != invVarParent.childNodes.length * 2) {
+	if (whiles != invVarParent.childNodes.length) {
 		generateInvVarInputs(whiles);
 	}
 }
