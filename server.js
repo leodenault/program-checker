@@ -3,6 +3,11 @@ var http = require('http');
 var qs = require('querystring');
 var fs = require('fs');
 var url = require('url');
+var express = require('express');
+var bodyParser = require('body-parser')
+var app = express()
+app.use(bodyParser());
+app.use('/static', express.static(__dirname + '/static'))
 
 // Map for converting characters to be used in an HTML document
 var escapeHtmlCharacterMap = {
@@ -47,11 +52,6 @@ function escapeInput(string) {
 function formatArg(string) {
 	return " \"" + escapeInput(string) + "\"";
 }
-
-// Code that is run when the web server starts
-var port = process.env.PORT || 5000;
-http.createServer(requestHandler).listen(port);
-console.log("Listening on port " + port);
 
 // Sends an HTML response using the HTML file loaded at server start
 // and inserts result into the HTML
@@ -108,6 +108,16 @@ function handleGet(request, response) {
 	}
 }
 
+app.get('/', function(req, res) {
+	console.log(req.url);
+	sendHtmlResponse(res, "");
+});
+
+app.post('/', function(req, res) {
+	executeChecker(res, req.body.precondition, req.body.program,
+				req.body.postcondition, extractMultiField("invariant", req), extractMultiField("variant", req));
+});
+
 // Handles HTTP requests from the client
 function requestHandler(request, response) {
 	console.log("Handling request of type " + request.method);
@@ -137,14 +147,19 @@ function requestHandler(request, response) {
 
 // Extracts a field that is repeated multiple times in the HTML form.
 // The fields will have a base name followed by a numeric identifier
-function extractMultiField(baseName, post) {
+function extractMultiField(baseName, req) {
 	var currentField;
 	var fieldArgs = "";
 	
-	for (var i = 0; (currentField = post[baseName + i]) !== undefined; i++) {
+	for (var i = 0; (currentField = req.body[baseName + i]) !== undefined; i++) {
 		fieldArgs += formatArg(currentField);
 	}
 	
 	return fieldArgs;
 } 
+
+// Code that is run when the web server starts
+var port = process.env.PORT || 5000;
+app.listen(port);
+console.log("Listening on port " + port);
 

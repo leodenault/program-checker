@@ -3,12 +3,16 @@
   "name": "program-checker",
   "description": "Web application for checking the validity of a program written in a generic programming language.",
   "version": "0.0.0",
+  "private": "true",
   "repository": {
     "type": "git",
     "url": "git@heroku.com:program-checker.git"
   },
   "main": "server.js",
-  "dependencies": {},
+  "dependencies": {
+	"express": "4.10.1",
+	"body-parser": "1.9.2"
+},
   "devDependencies": {},
   "optionalDependencies": {},
   "engines": {
