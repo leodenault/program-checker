@@ -11,10 +11,16 @@
 
 	<body>
 		<form id="programForm" action="#" method="post">
-			<input name="precondition" required type="text" placeholder="Precondition"></input>
-			<textarea id="program" name="program" required rows="30" cols="100" placeholder="Write your program here!"></textarea>
-			<input name="postcondition" required type="text" placeholder="Postcondition"></input>
-			<div id="invariants"></div>
+			<div>
+				<input name="precondition" required type="text" placeholder="Precondition"></input>
+			</div>
+			<div>
+				<textarea id="program" name="program" required rows="20" cols="50" placeholder="Write your program here!"></textarea>
+				<div id="invariants"></div>
+			</div>
+			<div>
+				<input name="postcondition" required type="text" placeholder="Postcondition"></input>
+			</div>
 			<input type="submit"/>
 		</form>
 		

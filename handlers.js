@@ -34,13 +34,18 @@ function generateInvVarInputs(count) {
 		invInput.type = "text";
 		invInput.placeholder = "Invariant " + (i + 1);
 		invInput.required = true;
-		invVarParent.appendChild(invInput);
+		
 		
 		var varInput = document.createElement("input");
 		varInput.name = "variant" + i;
 		varInput.type = "text";
 		varInput.placeholder = "Variant " + (i + 1);
 		varInput.required = true;
-		invVarParent.appendChild(varInput);
+		
+		var div = document.createElement("div");
+		div.appendChild(invInput);
+		div.appendChild(varInput);
+		invVarParent.appendChild(div);
 	}
 }
+
