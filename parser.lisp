@@ -100,6 +100,7 @@
   (let ((char (read-char stream nil))
 	(result ""))
     (if (and (member char math-operators)
+	     (read-while stream "\\s")
 	     (setf result (parse-expression stream)))
 	(format nil "~a~a" char result))))
 
@@ -110,6 +111,7 @@
 	(math-result ""))
     (if (and
 	 (setf expr-result (parse-expression stream))
+	 (read-while stream "\\s")
 	 (setf math-result (parse-math-expression stream)))
 	
 	(format nil "~a~a" expr-result math-result)
@@ -126,7 +128,9 @@
   (let ((result ""))
     (if (and
 	 (char-eq (read-char stream nil) #\()
+	 (read-while stream "\\s")
 	 (setf result (parse-complex-expression stream))
+	 (read-while stream "\\s")
 	 (char-eq (read-char stream nil) #\)))
 	(format nil "(~a)" result))))
 
@@ -144,10 +148,12 @@
 (defun parse-compound-boolean (stream)
   (let ((char (read-char stream nil)))
     (cond ((char-eq char #\&)
+	   (read-while stream "\\s")
 	   (format nil "/~a~a" #\\ (parse-boolean stream)))
 	  ((and (char-eq char #\|)
 	       (char-eq (read-char stream nil) #\|))
-	  (format nil "~a/~a" #\\ (parse-boolean stream))))))
+	   (read-while stream "\\s")
+	   (format nil "~a/~a" #\\ (parse-boolean stream))))))
 
 (defun parse-complex-boolean (stream)
   (let ((char (peek-char nil stream nil)))
@@ -161,12 +167,16 @@
 	      (result ""))
 	  (if (setf result (parse-expression stream))
 	      (progn
+		(read-while stream "\\s")
 		(setf op-char (read-char stream nil))
 		(if
 		  (or (char-eq op-char #\<) (char-eq op-char #\>))
-		  (format nil "~a~a~a"
-			  result op-char (parse-expression stream))
+		  (progn
+		    (read-while stream "\\s")
+		    (format nil "~a~a~a"
+			    result op-char (parse-expression stream)))
 		  (let ((next-char (read-char stream nil)))
+		    (read-while stream "\\s")
 		    (cond
 		      ((and (char-eq op-char #\!) (char-eq next-char #\=))
 		       (format nil "~a(~a=~a)" #\~
@@ -177,7 +187,8 @@
 	      (progn
 		;; Restore the stream at its original position
 		(stream-file-position stream stream-pos)
-		(if (setf result (parse-boolean stream))
+		(if (and (setf result (parse-boolean stream))
+			 (read-while stream "\\s"))
 		    (format nil "~a~a"
 			    result (parse-compound-boolean stream)))))))))
 
@@ -186,7 +197,9 @@
       (let ((result ""))
 	(if (and
 	     (char-eq (read-char stream nil) #\()
+	     (read-while stream "\\s")
 	     (setf result (parse-complex-boolean stream))
+	     (read-while stream "\\s")
 	     (char-eq (read-char stream nil) #\)))
 	    (format nil "(~a)" result)))
       (let ((value (read-while stream "[truefals]")))
@@ -202,7 +215,9 @@
     (if
      (and
       (setf (command-var comm) (parse-var stream))
+      (read-while stream "\\s")
       (char-eq (read-char stream nil) #\=)
+      (read-while stream "\\s")
       (setf (command-expression comm) (parse-expression stream)))
      comm)))
 
@@ -348,11 +363,12 @@
 ;;; ******************************************
 
 (defun build-parse-tree (input)
-  (let* ((stream (make-string-input-stream input))
-	 (comm-list (parse-command-list stream)))
-    (if (and (not (null comm-list))
-	     (null (read-char stream nil)))
-	comm-list)))
+  (let* ((stream (make-string-input-stream input)))
+    (read-while stream "\\s")
+    (let ((comm-list (parse-command-list stream)))
+      (if (and (not (null comm-list))
+	       (null (read-char stream nil)))
+	  comm-list))))
 
 (defun check-program (precondition program postcondition invariants variants)
   (setf *partial-proofs* '())
