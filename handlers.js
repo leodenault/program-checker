@@ -2,12 +2,12 @@ window.addEventListener("load", onLoad)
 
 var form;
 var invVarParent;
-var invVarBlock;
+var invVarParentBlock;
 
 function onLoad() {
 	form = document.getElementById("programForm");
 	invVarParent = document.getElementById("invariants");
-	invVarBlock = document.getElementById("invVarBlock");
+	invVarParentBlock = document.getElementById("invVarParentBlock");
 	var program = document.getElementById("program");
 	program.addEventListener("input", countWhileLoops);
 	
@@ -31,9 +31,9 @@ function generateInvVarInputs(count) {
 	}
 	
 	if (count > 0) {
-		invVarBlock.className = "inv-var-block";
+		invVarParentBlock.className = "inv-var-parent-block";
 	} else {
-		invVarBlock.className = "inv-var-block-hidden";
+		invVarParentBlock.className = "inv-var-parent-block-hidden";
 	}
 	
 	for (var i = 0; i < count; i++) {

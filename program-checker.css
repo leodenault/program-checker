@@ -1,15 +1,18 @@
-.program-block, .inv-var-block {
+.program-block, .inv-var-parent-block {
 	display: inline-block;
+	vertical-align: top;
+}
+
+.inv-var-parent-block h2 {
+	margin: 7px 0 7px 0;
 }
 
 .inv-var-block {
-	vertical-align: top;
 	overflow: scroll;
 	height: 40%;
-	min-width: 360px;
 }
 
-.inv-var-block-hidden {
+.inv-var-parent-block-hidden {
 	display: none;
 }
 
