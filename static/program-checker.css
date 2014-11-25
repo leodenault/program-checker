@@ -1,6 +1,7 @@
 .program-block, .inv-var-parent-block {
 	display: inline-block;
 	vertical-align: top;
+	width: 40%;
 }
 
 .inv-var-parent-block h2 {
@@ -18,8 +19,10 @@
 
 #program {
 	height:40%;
+	width: 100%;
 }
 
 .condition-input {
 	margin: 10px 0 10px 0;
+	width: 100%;
 }
