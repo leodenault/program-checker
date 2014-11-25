@@ -89,25 +89,6 @@ function executeChecker(response, precondition, program, postcondition, invarian
 		});
 }
 
-// Handles an HTTP GET request
-function handleGet(request, response) {
-	path = url.parse(request.url).pathname; // Get the pathname of the requested resource
-	console.log("Handling request for resource: " + path);
-	
-	if (/\.(css|js)$/.test(path)) {
-		// Parse the content type and send it through the HTTP response
-		var content = fs.readFileSync(__dirname + path, 'utf-8');
-		var suffix = path.substr(path.lastIndexOf(".") + 1, path.length - 1);
-		var contentType = "text/" + (suffix == "css" ? "css" : "javascript");
-		
-		response.writeHead(200, {'Content-Type' : contentType});
-		response.write(content);
-		response.end();
-	} else {
-		sendHtmlResponse(response, ""); // Return the HTML file
-	}
-}
-
 app.get('/', function(req, res) {
 	console.log(req.url);
 	sendHtmlResponse(res, "");
@@ -117,33 +98,6 @@ app.post('/', function(req, res) {
 	executeChecker(res, req.body.precondition, req.body.program,
 				req.body.postcondition, extractMultiField("invariant", req), extractMultiField("variant", req));
 });
-
-// Handles HTTP requests from the client
-function requestHandler(request, response) {
-	console.log("Handling request of type " + request.method);
-	if (request.method == 'POST') {
-		var result = null;
-		var body = '';
-		
-		// Load the POST data
-		request.on('data', function (data) {
-		    body += data;
-
-		    // Too much POST data, kill the connection!
-		    if (body.length > 1e6)
-		        req.connection.destroy();
-		});
-		
-		// Feed the POST data into the program checker and render the response
-		request.on('end', function () {
-		    var post = qs.parse(body);
-			executeChecker(response, post['precondition'], post['program'],
-				post['postcondition'], extractMultiField("invariant", post), extractMultiField("variant", post));
-		});
-	} else {
-		handleGet(request, response);
-	}
-}
 
 // Extracts a field that is repeated multiple times in the HTML form.
 // The fields will have a base name followed by a numeric identifier
