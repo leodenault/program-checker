@@ -78,7 +78,7 @@ function executeChecker(response, precondition, program, postcondition, invarian
 				// Retrieve the program output and render the response
 				console.log("Lisp process executed successfully");
 				console.log(stdout);
-				result = escapeHtml("Program output: \n" + stdout);
+				result = escapeHtml(stdout);
 				sendHtmlResponse(response, result);
 			} else {
 				// Render the response with the given error

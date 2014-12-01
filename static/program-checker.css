@@ -1,6 +1,9 @@
 .program-block, .inv-var-parent-block {
 	display: inline-block;
 	vertical-align: top;
+}
+
+.left-block, .program-block, .inv-var-parent-block {
 	width: 40%;
 }
 
