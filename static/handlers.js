@@ -42,6 +42,7 @@ function generateInvVarInputs(count) {
 		invInput.type = "text";
 		invInput.placeholder = "Invariant " + (i + 1);
 		invInput.required = true;
+		invInput.className = "form-control";
 		
 		
 		var varInput = document.createElement("input");
@@ -49,11 +50,23 @@ function generateInvVarInputs(count) {
 		varInput.type = "text";
 		varInput.placeholder = "Variant " + (i + 1);
 		varInput.required = true;
+		varInput.className = "form-control";
+		
+		var invDiv = document.createElement("div")
+		var varDiv = document.createElement("div")
+		invDiv.className = "col-sm-6";
+		varDiv.className = "col-sm-6";
+		invDiv.appendChild(invInput);
+		varDiv.appendChild(varInput);
 		
 		var div = document.createElement("div");
-		div.appendChild(invInput);
-		div.appendChild(varInput);
-		invVarParent.appendChild(div);
+		div.className = "row top-bottom-padded";
+		div.appendChild(invDiv);
+		div.appendChild(varDiv);
+		var spacer = document.createElement("div")
+		spacer.className = "col-md-12";
+		spacer.appendChild(div);
+		invVarParent.appendChild(spacer);
 	}
 }
 

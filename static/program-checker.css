@@ -3,17 +3,13 @@
 	vertical-align: top;
 }
 
-.left-block, .program-block, .inv-var-parent-block {
-	width: 40%;
-}
-
-.inv-var-parent-block h2 {
-	margin: 7px 0 7px 0;
+.program-block, .inv-var-parent-block {
+	width: 49%;
 }
 
 .inv-var-block {
 	overflow: scroll;
-	height: 40%;
+	max-height: 40%;
 }
 
 .inv-var-parent-block-hidden {
@@ -21,11 +17,28 @@
 }
 
 #program {
-	height:40%;
+	height: 40%;
 	width: 100%;
 }
 
-.condition-input {
+.top-bottom-padded {
 	margin: 10px 0 10px 0;
-	width: 100%;
 }
+
+.pointer {
+	cursor: pointer;
+}
+
+.panel-body {
+	background-color: #f7f7f7;
+}
+
+.navbar-default {
+	background-color: #c30000;
+	border-color: #c30000;
+}
+
+.navbar-default .navbar-brand {
+	color: #ffffff;
+}
+

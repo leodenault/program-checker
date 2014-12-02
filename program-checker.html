@@ -17,39 +17,67 @@
 			<div class="container-fluid">
 				<div class="navbar-header">
 					<span class="navbar-brand">Program Checker</span>
-					<a class="navbar-brand pull-right" href="program-checker.html">
-						<span class="glyphicon glyphicon-info-sign" aria-hidden="true"></span>
-					</a>
+					<span class="navbar-brand pointer glyphicon glyphicon-info-sign"
+						aria-hidden="true" data-toggle="modal" data-target="#info-modal"></span>
 				</div>
 			</div>
         </nav>
 
 	
-		<div>
+		<div class="container">
+		
 			<form id="programForm" role="form" action="#" method="post">
-				<div class="program-block">
-					<div>
-						<input name="precondition" class="condition-input" required type="text" placeholder="Precondition"></input>
+				<div class="row">
+					<div class="col-sm-6">
+						<div class="input-group top-bottom-padded">
+							<span class="input-group-addon">(|</span>
+							<input name="precondition" class="form-control" required type="text" placeholder="Precondition"></input>
+							<span class="input-group-addon">|)</span>
+						</div>
+						<div>
+							<textarea id="program" name="program" class="form-control"
+								required rows="20" cols="50" placeholder="Write your program here!"></textarea>
+						</div>
+						<div class="input-group top-bottom-padded">
+							<span class="input-group-addon">(|</span>
+							<input name="postcondition" class="form-control" required type="text" placeholder="Postcondition"></input>
+							<span class="input-group-addon">|)</span>
+						</div>
+						<div>
+							<button type="submit" class="btn btn-lg btn-danger btn-block">Submit</button>
+						</div>
 					</div>
-					<div>
-						<textarea id="program" name="program" required rows="20" cols="50" placeholder="Write your program here!"></textarea>
+					<div id="invVarParentBlock" class="col-sm-6 inv-var-parent-block-hidden">
+						<div class="panel panel-danger top-bottom-padded">
+							<div class="panel-heading">
+								<h1 class="panel-title">Invariants and Variants</h1>
+							</div>
+						<div class="panel-body inv-var-block">
+							<div id="invariants"></div>
+						</div></div>
 					</div>
-					<div>
-						<input name="postcondition" class="condition-input" required type="text" placeholder="Postcondition"></input>
-					</div>
-				</div>
-				<div id="invVarParentBlock" class="inv-var-parent-block-hidden">
-					<h2>Invariants and Variants</h2>
-					<div class="inv-var-block">
-						<div id="invariants"></div>
-					</div>
-				</div>
-				<div class="left-block">
-					<button type="submit" class="btn btn-sm btn-info btn-block">Submit</button>
 				</div>
 			</form>
+			
+			<div class="panel panel-danger top-bottom-padded">
+				<div class="panel-heading">
+					<h1 class="panel-title">Proofs</h1>
+				</div>
+				<div class="panel-body">{result}</div>
 		</div>
 		
-		<div>{result}</div>
 	</body>
+	
+	<div class="modal fade" id="info-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+					<h4 class="modal-title" id="myModalLabel">Instructions</h4>
+				</div>
+				<div class="modal-body">
+				</div>
+			</div>
+		</div>
+	</div>
 </html>
