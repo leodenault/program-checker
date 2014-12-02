@@ -27,7 +27,7 @@ function countWhileLoops() {
 	
 	var whiles = (text.match(/(\s+|^)while((\s*\()|\s+((true)|(false)))/g) || []).length;
 	
-	if (whiles != $("#invariants div").length) {
+	if (whiles != $("#invariants .col-md-12").length) {
 		generateInvVarInputs(whiles);
 	}
 }
