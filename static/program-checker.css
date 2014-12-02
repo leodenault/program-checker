@@ -1,18 +1,9 @@
-.program-block, .inv-var-parent-block {
-	display: inline-block;
-	vertical-align: top;
-}
-
-.program-block, .inv-var-parent-block {
-	width: 49%;
-}
-
 .inv-var-block {
 	overflow: scroll;
 	max-height: 40%;
 }
 
-.inv-var-parent-block-hidden {
+.hidden {
 	display: none;
 }
 
@@ -40,5 +31,14 @@
 
 .navbar-default .navbar-brand {
 	color: #ffffff;
+}
+
+.modal-header {
+	background-color: #c30000;
+	color: #ffffff;
+}
+
+.panel-instruction {
+	margin-bottom: 0;
 }
 

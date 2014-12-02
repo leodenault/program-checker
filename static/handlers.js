@@ -31,9 +31,9 @@ function generateInvVarInputs(count) {
 	}
 	
 	if (count > 0) {
-		invVarParentBlock.className = "inv-var-parent-block";
+		invVarParentBlock.className = "col-sm-6";
 	} else {
-		invVarParentBlock.className = "inv-var-parent-block-hidden";
+		invVarParentBlock.className = "hidden";
 	}
 	
 	for (var i = 0; i < count; i++) {
