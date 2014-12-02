@@ -89,6 +89,14 @@ app.get('/', function(req, res) {
 	res.end();
 });
 
+app.get('/instructions', function(req, res) {
+	console.log(req.url);
+	var html = fs.readFileSync("./instructions.html", 'utf-8');
+	res.writeHead(200, {'Content-Type' : 'text/html'});
+	res.write(html);
+	res.end();
+});
+
 app.post('/', function(req, res) {
 	executeChecker(res, req.body.precondition, req.body.program,
 				req.body.postcondition, extractMultiField("invariant", req), extractMultiField("variant", req));

@@ -6,6 +6,12 @@ $(document).ready(function () {
 	programForm = $("#programForm");
 	programForm.submit(submitForm);
 	
+	var getting = $.get("/instructions");
+	
+	getting.done(function(data) {
+		$("body").append(data);
+	});
+	
 	invVarParent = $("#invariants");
 	invVarParentBlock = $("#invVarParentBlock");
 	
