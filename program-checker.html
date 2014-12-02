@@ -13,6 +13,7 @@
 	</head>
 
 	<body>
+		<!-- Top bar of the application -->
 		<nav class="navbar navbar-default" role="navigation">
 			<div class="container-fluid">
 				<div class="navbar-header">
@@ -23,15 +24,17 @@
 			</div>
         </nav>
 
-	
+		<!-- Main application container -->
 		<div class="container">
 		
-			<form id="programForm" role="form" action="#" method="post">
-				<div class="row">
+			<!-- User input form for program data -->
+			<div class="row">
+				<form id="programForm" role="form" action="#" method="post">
 					<div class="col-sm-6">
 						<div class="input-group top-bottom-padded">
 							<span class="input-group-addon">(|</span>
-							<input name="precondition" class="form-control" required type="text" placeholder="Precondition"></input>
+							<input id="precondition" name="precondition"
+								class="form-control" required type="text" placeholder="Precondition"></input>
 							<span class="input-group-addon">|)</span>
 						</div>
 						<div>
@@ -40,7 +43,8 @@
 						</div>
 						<div class="input-group top-bottom-padded">
 							<span class="input-group-addon">(|</span>
-							<input name="postcondition" class="form-control" required type="text" placeholder="Postcondition"></input>
+							<input id="postcondition" name="postcondition"
+								class="form-control" required type="text" placeholder="Postcondition"></input>
 							<span class="input-group-addon">|)</span>
 						</div>
 						<div>
@@ -52,22 +56,28 @@
 							<div class="panel-heading">
 								<h1 class="panel-title">Invariants and Variants</h1>
 							</div>
+						</div>
 						<div class="panel-body inv-var-block">
 							<div id="invariants"></div>
-						</div></div>
+						</div>
 					</div>
-				</div>
-			</form>
+				</form>
+			</div>
 			
-			<div class="panel panel-danger top-bottom-padded">
-				<div class="panel-heading">
-					<h1 class="panel-title">Proofs</h1>
+			<!-- Program checker output -->
+			<div class="row">
+				<div class="panel panel-danger top-bottom-padded">
+					<div class="panel-heading">
+						<h1 class="panel-title">Proofs</h1>
+					</div>
+					<div id="results" class="panel-body"></div>
 				</div>
-				<div class="panel-body">{result}</div>
-		</div>
+			</div>
 		
+		</div>
 	</body>
 	
+	<!-- Instructions modal with instruction text -->
 	<div class="modal fade" id="info-modal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
 		<div class="modal-dialog">
 			<div class="modal-content">

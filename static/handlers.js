@@ -1,18 +1,19 @@
-window.addEventListener("load", onLoad)
-
-var form;
 var invVarParent;
 var invVarParentBlock;
+var programForm;
 
-function onLoad() {
-	form = document.getElementById("programForm");
-	invVarParent = document.getElementById("invariants");
-	invVarParentBlock = document.getElementById("invVarParentBlock");
-	var program = document.getElementById("program");
-	program.addEventListener("input", countWhileLoops);
+$(document).ready(function () {
+	programForm = $("#programForm");
+	programForm.submit(submitForm);
+	
+	invVarParent = $("#invariants");
+	invVarParentBlock = $("#invVarParentBlock");
+	
+	var program = $("#program");
+	program.on("input", countWhileLoops);
 	
 	countWhileLoops();
-}
+});
 
 function countWhileLoops() {
 	var program = document.getElementById("program");
@@ -20,20 +21,20 @@ function countWhileLoops() {
 	
 	var whiles = (text.match(/(\s+|^)while((\s*\()|\s+((true)|(false)))/g) || []).length;
 	
-	if (whiles != invVarParent.childNodes.length) {
+	if (whiles != $("#invariants div").length) {
 		generateInvVarInputs(whiles);
 	}
 }
 
 function generateInvVarInputs(count) {
-	while (invVarParent.hasChildNodes()) {
-		invVarParent.removeChild(invVarParent.childNodes[0]);
-	}
+	invVarParent.empty();
 	
 	if (count > 0) {
-		invVarParentBlock.className = "col-sm-6";
+		invVarParentBlock.addClass("col-sm-6");
+		invVarParentBlock.removeClass("hidden");
 	} else {
-		invVarParentBlock.className = "hidden";
+		invVarParentBlock.removeClass("col-sm-6");
+		invVarParentBlock.addClass("hidden");
 	}
 	
 	for (var i = 0; i < count; i++) {
@@ -66,7 +67,21 @@ function generateInvVarInputs(count) {
 		var spacer = document.createElement("div")
 		spacer.className = "col-md-12";
 		spacer.appendChild(div);
-		invVarParent.appendChild(spacer);
+		invVarParent.append(spacer);
 	}
+}
+
+function submitForm(event) {
+	event.preventDefault();
+	
+	var $form = $(this),
+		url = $form.attr('action'),
+		data = $form.serialize();
+
+	var posting = $.post(url, data);
+
+	posting.done(function(data) {
+		$("#results").empty().append(data);
+	});
 }
 

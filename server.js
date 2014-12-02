@@ -53,15 +53,6 @@ function formatArg(string) {
 	return " \"" + escapeInput(string) + "\"";
 }
 
-// Sends an HTML response using the HTML file loaded at server start
-// and inserts result into the HTML
-function sendHtmlResponse(response, result) {
-	var html = fs.readFileSync("./program-checker.html", 'utf-8').replace(/\{result\}/g, result);
-	response.writeHead(200, {'Content-Type' : 'text/html'});
-	response.write(html);
-	response.end();
-}
-
 // Runs the program checker implemented in Lisp with the given string arguments
 function executeChecker(response, precondition, program, postcondition, invariants, variants) {
 	// Escape backslashes and double quotes to avoid errors when executing
@@ -74,24 +65,28 @@ function executeChecker(response, precondition, program, postcondition, invarian
 	console.log("Executing Lisp process with command: " + command);
 	var child = exec(command,
 		function (error, stdout, stderr) {
+			var result = "";
 			if (error === null) {
 				// Retrieve the program output and render the response
 				console.log("Lisp process executed successfully");
 				console.log(stdout);
 				result = escapeHtml(stdout);
-				sendHtmlResponse(response, result);
 			} else {
 				// Render the response with the given error
 				console.log("Lisp process failed with error: \n" + error);
-				sendHtmlResponse(response, "There was an error trying to process the code!");
+				result = "There was an error trying to process the code!";
 			}
-
+			response.write(result);
+			response.end();
 		});
 }
 
 app.get('/', function(req, res) {
 	console.log(req.url);
-	sendHtmlResponse(res, "");
+	var html = fs.readFileSync("./program-checker.html", 'utf-8');
+	res.writeHead(200, {'Content-Type' : 'text/html'});
+	res.write(html);
+	res.end();
 });
 
 app.post('/', function(req, res) {
