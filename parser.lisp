@@ -323,13 +323,15 @@ being read matches regex"
 		(command-expression command)
 		"\\{2}")))
 
-(defun bubble-if (command prop-cond)
+(defun bubble-if (command prop-cond &optional (total-correctness nil))
   (let ((a1 (bubble-commands
 	     (if-command-then-command-list command)
-	     prop-cond))
+	     prop-cond
+	     total-correctness))
 	(a2 (bubble-commands
 	     (if-command-else-command-list command)
-	     prop-cond))
+	     prop-cond
+	     total-correctness))
 	(bool (if-command-boolean command)))
     (format nil "(~a->~a)/~a(~a~a->~a)" bool a1 #\\ #\~ bool a2)))
 
@@ -356,7 +358,8 @@ being read matches regex"
 	(setf variant "var"))
     (let ((implied (bubble-commands
 		    (while-command-command-list command)
-		    (format nil "~a/~a0<=~a<init" invariant #\\ variant)))
+		    (format nil "~a/~a0<=~a<init" invariant #\\ variant)
+		    t))
 	  (bool (while-command-boolean command)))
       (push (format nil "(~a/~a~a~a)->(~a)"
 		    invariant #\\ #\~ bool prop-cond) *total-proofs*)
@@ -376,7 +379,10 @@ being read matches regex"
 		    (bubble-assignment command current-prop-condition))
 	   if (if-command-p command)
 	   do (setf current-prop-condition
-		    (bubble-if command current-prop-condition))
+		    (bubble-if
+		     command
+		     current-prop-condition
+		     total-correctness))
 	   if (while-command-p command)
 	   do (progn
 		(setf current-prop-condition
