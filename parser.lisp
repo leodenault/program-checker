@@ -118,7 +118,7 @@ being read matches regex"
     (if (and (member char math-operators)
 	     (read-while stream "\\s")
 	     (setf result (parse-expression stream)))
-	(format nil "~a~a" char result))))
+	(format nil "~a ~a" char result))))
 
 (defun parse-complex-expression (stream)
   ;; Save the current position of the stream
@@ -130,7 +130,7 @@ being read matches regex"
 	 (read-while stream "\\s")
 	 (setf math-result (parse-math-expression stream)))
 	
-	(format nil "~a~a" expr-result math-result)
+	(format nil "~a ~a" expr-result math-result)
 
 	(progn
 	  ;; Restore the stream to its original position
@@ -165,11 +165,11 @@ being read matches regex"
   (let ((char (read-char stream nil)))
     (cond ((char-eq char #\&)
 	   (read-while stream "\\s")
-	   (format nil "/~a~a" #\\ (parse-boolean stream)))
+	   (format nil "/~a ~a" #\\ (parse-boolean stream)))
 	  ((and (char-eq char #\|)
 	       (char-eq (read-char stream nil) #\|))
 	   (read-while stream "\\s")
-	   (format nil "~a/~a" #\\ (parse-boolean stream))))))
+	   (format nil "~a/ ~a" #\\ (parse-boolean stream))))))
 
 (defun parse-complex-boolean (stream)
   (let ((char (peek-char nil stream nil)))
@@ -190,29 +190,29 @@ being read matches regex"
 		       (not (char-eq (peek-char nil stream nil) #\=)))
 		  (progn
 		    (read-while stream "\\s")
-		    (format nil "~a~a~a"
+		    (format nil "~a ~a ~a"
 			    result op-char (parse-expression stream)))
 		  (let ((next-char (read-char stream nil)))
 		    (read-while stream "\\s")
 		    (cond
 		      ((and (char-eq op-char #\<) (char-eq next-char #\=))
-		       (format nil "~a<=~a"
+		       (format nil "~a <= ~a"
 			       result (parse-expression stream)))
 		      ((and (char-eq op-char #\>) (char-eq next-char #\=))
-		       (format nil "~a>=~a"
+		       (format nil "~a >= ~a"
 			       result (parse-expression stream)))
 		      ((and (char-eq op-char #\!) (char-eq next-char #\=))
-		       (format nil "~a!=~a"
+		       (format nil "~a != ~a"
 			       result (parse-expression stream)))
 		      ((and (char-eq op-char #\=) (char-eq next-char #\=))
-		       (format nil "~a=~a"
+		       (format nil "~a = ~a"
 			       result (parse-expression stream)))))))
 	      (progn
 		;; Restore the stream at its original position
 		(stream-file-position stream stream-pos)
 		(if (and (setf result (parse-boolean stream))
 			 (read-while stream "\\s"))
-		    (format nil "~a~a"
+		    (format nil "~a ~a"
 			    result (parse-compound-boolean stream)))))))))
 
 (defun parse-boolean (stream)
@@ -314,9 +314,9 @@ being read matches regex"
 (defun bubble-assignment (command prop-cond)
   (regex-replace-all 
    (concatenate 'string
-		"([^\\w]|[\\s])"
+		"([^\\w]|[\\s]|^)"
 		(command-var command)
-		"([^\\w]|[\\s])")
+		"([^\\w]|[\\s]|$)")
    prop-cond
    (concatenate 'string
 		"\\{1}"
@@ -333,7 +333,7 @@ being read matches regex"
 	     prop-cond
 	     total-correctness))
 	(bool (if-command-boolean command)))
-    (format nil "(~a->~a)/~a(~a~a->~a)" bool a1 #\\ #\~ bool a2)))
+    (format nil "(~a -> ~a) /~a (~a~a -> ~a)" bool a1 #\\ #\~ bool a2)))
 
 (defun bubble-partial-while (command prop-cond)
   (let ((invariant (pop *invariants*)))  
@@ -343,9 +343,9 @@ being read matches regex"
 		    (while-command-command-list command)
 		    invariant))
 	  (bool (while-command-boolean command)))
-      (push (format nil "(~a/~a~a~a)->(~a)"
+      (push (format nil "(~a /~a ~a~a) -> (~a)"
 		    invariant #\\ #\~ bool prop-cond) *partial-proofs*)
-      (push (format nil "(~a/~a~a)->(~a)"
+      (push (format nil "(~a /~a ~a) -> (~a)"
 		    invariant #\\ bool implied) *partial-proofs*)
       invariant)))
 
@@ -358,14 +358,15 @@ being read matches regex"
 	(setf variant "var"))
     (let ((implied (bubble-commands
 		    (while-command-command-list command)
-		    (format nil "~a/~a0<=~a<init" invariant #\\ variant)
+		    (format nil "~a /~a 0 <= ~a < init"
+			    invariant #\\ variant)
 		    t))
 	  (bool (while-command-boolean command)))
-      (push (format nil "(~a/~a~a~a)->(~a)"
+      (push (format nil "(~a /~a ~a~a) -> (~a)"
 		    invariant #\\ #\~ bool prop-cond) *total-proofs*)
-      (push (format nil "(~a/~a~a/~a0<=~a=init)->(~a)"
+      (push (format nil "(~a /~a ~a /~a 0 <= ~a = init) -> (~a)"
 		    invariant #\\ bool #\\ variant implied) *total-proofs*)
-      (format nil "~a/~a0<=~a" invariant #\\ variant))))
+      (format nil "~a /~a 0 <= ~a" invariant #\\ variant))))
 
 (defun bubble-commands (commands postcondition
 			&optional (total-correctness nil))
