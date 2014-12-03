@@ -187,14 +187,15 @@
 								an expression of the form:
 								<pre>(&lt;expression&gt;&nbsp;&lt;op&gt;&nbsp;&lt;expression&gt;)</pre>
 								Where op is one of +, -, or *. An expression can also be negated by prepending it
-								with a dash (-).<br><br>
+								with a dash (-) and surrounding both with parentheses (for example, (-&lt;expression&gt;)).<br><br>
 								
 								If statements are of the form:
 								<pre>if &lt;boolean&gt; {<br>...<br>} else {<br>...<br>}</pre>
 								Within the curly braces there must be at least one statement. The boolean is a boolean
 								expression which can simply be the values true or false, a comparison of boolean expressions
-								(where the operators are || and &), the negation of a boolean expression by prepending
-								it with !, or a comparison between mathematical expressions using &lt;, &gt;,&lt;=,&gt;=,==, or !=.
+								(where the operators are || and &), the negation of a boolean expression (in the form (!&lt;boolean&gt;))
+								by prepending it with !, or a comparison between mathematical expressions using &lt;, &gt;, 
+								&lt;=, &gt;=, ==, or !=.
 								
 								Finally, while statements are of the form:
 								<pre>while &lt;boolean&gt; {<br>...<br>}</pre>
@@ -249,7 +250,10 @@
 								of the program in terms of total correctness. Like pre- and postconditions, the user may specify
 								anything as a variant, but should follow the table of symbols in <strong>Preconditions and
 								Postconditions</strong> to make full use of the program checker's ability to recognize symbols
-								and properly format their output.
+								and properly format their output.<br><br>
+								
+								An element that appears in variants that do not appear in invariants is the <strong>init</strong>
+								logic variable. It represents some value to which a program loop variable must be equal.
 							</div>
 						</div>
 					</div>
@@ -265,7 +269,21 @@
 						</div>
 						<div id="collapseOutput" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOutput">
 							<div class="panel-body">
+								Proofs appear in their own box once the program has been submitted and processed by the
+								program checker. The formulas that appear in this box are propositional logic formulas
+								that need to be proven so that the validity of the program can be proven. This can
+								be done by hand or by using one of many theorem provers available. The formulas are divided
+								into two sections:
 								
+								<h3>Partial Correctness Proofs</h3>
+								If the formulas in this section can be proven, then one can prove the validity of the program
+								in terms of partial correctness. This means that termination of the program <strong>is not</strong>
+								taken into account in these proofs.
+								
+								<h3>Total Correctness Proofs</h3>
+								If the formulas in this section can be proven, then one can prove the validity of the program
+								in terms of total correctness. This means that termination of the program <strong>is</strong>
+								taken into account in these proofs.
 							</div>
 						</div>
 					</div>
@@ -281,7 +299,47 @@
 						</div>
 						<div id="collapseExample" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingExample">
 							<div class="panel-body">
+								Here is a small example of the workflow of the program checker application.
 								
+								<h3>Program</h3>
+								Use the following program as an example:
+<pre>
+y = 0;
+x = 0;
+
+while (x != w) {
+	x = (x + 1);
+	y = (y + z);
+}
+</pre>
+								Insert the program into the program input box.
+									<img class="screenshot" src="static/img/program.png"
+										alt="Program inserted in the program text area"></img>
+								
+								Next, use the following as the precondition:
+								<pre>w >= 0</pre>
+								and put it into the precondition box:
+									<img class="screenshot" src="static/img/precondition.png"
+										alt="Precondition inserted into the precondition input box"></img>
+								
+								Use the following as the postcondition:
+								<pre>y = w * z</pre>
+								and put it into the postcondition box:
+									<img class="screenshot" src="static/img/postcondition.png"
+										alt="Postcondition inserted into the postcondition input box"></img>
+								
+								Following that, use <pre>y = x * z</pre> as invariant 1,
+								and use <pre>w - x</pre> as variant 1.
+								<img class="screenshot" src="static/img/invVar.png"
+									alt="Invariant 1 and variant 1 inserted into their respective inputs"></img>
+								
+								Finally, click the submit button and look at the results in the <strong>Proofs</strong> box.
+								It should look like this:
+								<img class="screenshot" src="static/img/proofs.png"
+									alt="Resulting proofs from running the example"></img>
+								
+								So to prove the validity of the program, one must prove that each of the formulas hold,
+								either for partial or total correctness.
 							</div>
 						</div>
 					</div>
