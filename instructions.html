@@ -174,7 +174,32 @@
 								must be written between parentheses. This means that mathematical operations like multiplication
 								must be written like the following: ((x&nbsp;*&nbsp;y)&nbsp;+&nbsp;3) and not
 								x&nbsp;*&nbsp;y&nbsp;+&nbsp;3. Another fairly large difference is that the checker does
-								not support function definitions.
+								not support function definitions.<br><br>
+								
+								A program can have three types of statements: assignment statements, if statements, and
+								while statements.<br><br>
+								
+								Assignment statements are of the form:
+								<pre>&lt;variable&gt;&nbsp;=&nbsp;&lt;expression&gt;</pre>
+								Variables need not be declared beforehand.
+								A variable can contain letters, digits, and underscores, but cannot start with a digit.
+								Expressions are mathematical expressions. They can be another variable, a number, or
+								an expression of the form:
+								<pre>(&lt;expression&gt;&nbsp;&lt;op&gt;&nbsp;&lt;expression&gt;)</pre>
+								Where op is one of +, -, or *. An expression can also be negated by prepending it
+								with a dash (-).<br><br>
+								
+								If statements are of the form:
+								<pre>if &lt;boolean&gt; {<br>...<br>} else {<br>...<br>}</pre>
+								Within the curly braces there must be at least one statement. The boolean is a boolean
+								expression which can simply be the values true or false, a comparison of boolean expressions
+								(where the operators are || and &), the negation of a boolean expression by prepending
+								it with !, or a comparison between mathematical expressions using &lt;, &gt;,&lt;=,&gt;=,==, or !=.
+								
+								Finally, while statements are of the form:
+								<pre>while &lt;boolean&gt; {<br>...<br>}</pre>
+								The boolean expression follows the same syntactical rules as for the boolean expression in an
+								if statement. There must be at least one statement within the curly braces.
 							</div>
 						</div>
 					</div>
@@ -190,7 +215,41 @@
 						</div>
 						<div id="collapseInvVar" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingInvVar">
 							<div class="panel-body">
+								Invariants and variants are only necessary when writing while loops. Without a while loop
+								there will be no option to add invariants or variants. If the program contains one
+								or many loops, then a box will appear containing the necessary amount of inputs for
+								the invariants and variants. The order in which the invariants and variants should be
+								filled out follows the textual order of the while loops. Nesting loops has no effect.
+								For example:
 								
+<pre>while (x &lt; 10) {
+	while (y &lt; 10) {
+		z = (z + 1);
+		y = (y + 1);
+	}
+	x = (x + 1);
+}
+</pre>
+								
+								The first invariant and variant would correspond to the <strong>while (x &lt; 10)</strong>
+								and the second would correspond to the <strong>while (y &lt; 10)</strong>.
+								
+								<h3>Invariants</h3>
+								Invariants are propositional logic formulas that are always true during the execution
+								of a while loop. They are used to help generate the formulas needed to prove the validity
+								of the program in terms of partial correctness. Like pre- and postconditions, the user may
+								specify anything as an invariant, but should follow the table of symbols in
+								<strong>Preconditions and Postconditions</strong> to make full use of the program checker's
+								ability to recognize symbols and properly format their output.
+								
+								<h3>Variants</h3>
+								Variants are expressions that are constantly changing during the execution
+								of a while loop such that the value of the expression eventually reaches 0. They are used to
+								help generate the formulas needed to prove the validity
+								of the program in terms of total correctness. Like pre- and postconditions, the user may specify
+								anything as a variant, but should follow the table of symbols in <strong>Preconditions and
+								Postconditions</strong> to make full use of the program checker's ability to recognize symbols
+								and properly format their output.
 							</div>
 						</div>
 					</div>
