@@ -1,6 +1,7 @@
 var invVarParent;
 var invVarParentBlock;
 var programForm;
+var resultsPanel;
 
 $(document).ready(function () {
 	programForm = $("#programForm");
@@ -13,8 +14,9 @@ $(document).ready(function () {
 	});
 	
 	invVarParent = $("#invariants > .col-md-12");
-	invVarParentBlock = $("#invVarParentBlock");
-	invVarParentBlock.hide();
+	invVarParentBlock = $("#invVarParentBlock").hide();
+	
+	resultsPanel = $("#resultsPanel").hide();
 	
 	var program = $("#program");
 	program.on("input", countWhileLoops);
@@ -87,6 +89,8 @@ function generateInvVarInputs(count) {
 
 function submitForm(event) {
 	event.preventDefault();
+
+	resultsPanel.show(300);
 	
 	var $form = $(this),
 		url = $form.attr('action'),

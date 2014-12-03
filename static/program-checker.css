@@ -1,3 +1,16 @@
+#program {
+	height: 40%;
+	width: 100%;
+}
+
+td, th {
+	text-align: center;
+}
+
+table.table>tbody>tr>th {
+	vertical-align: middle;
+}
+
 .inv-var-block {
 	overflow: scroll;
 	max-height: 40%;
@@ -5,11 +18,6 @@
 
 .hidden {
 	display: none;
-}
-
-#program {
-	height: 40%;
-	width: 100%;
 }
 
 .top-bottom-padded {
@@ -40,5 +48,27 @@
 
 .panel-instruction {
 	margin-bottom: 0;
+}
+
+.modal-body {
+	overflow: scroll;
+	max-height: 75%;
+}
+
+.close {
+	font-size: 30px;
+}
+
+.collapse-instruction {
+	font-family: 'Glyphicons Halflings';
+	margin: 10px;
+}
+
+.panel-heading.collapsed .collapse-instruction:after {
+	content: "\e159";
+}
+
+.panel-heading .collapse-instruction:after {
+	content: "\e160";
 }
 
