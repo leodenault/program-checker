@@ -12,7 +12,7 @@ $(document).ready(function () {
 		$("body").append(data);
 	});
 	
-	invVarParent = $("#invariants");
+	invVarParent = $("#invariants > .col-md-12");
 	invVarParentBlock = $("#invVarParentBlock");
 	invVarParentBlock.hide();
 	
@@ -28,58 +28,60 @@ function countWhileLoops() {
 	
 	var whiles = (text.match(/(\s+|^)while((\s*\()|\s+((true)|(false)))/g) || []).length;
 	
-	if (whiles != $("#invariants .col-md-12").length) {
+	if (whiles != invVarParent.children().length) {
 		generateInvVarInputs(whiles);
 	}
 }
 
 function generateInvVarInputs(count) {
-	invVarParent.empty();
-	
 	if (count > 0) {
 		invVarParentBlock.show(300);
 	} else {
 		invVarParentBlock.hide(300);
 	}
 	
-	for (var i = 0; i < count; i++) {
-		var invInput =
-			$("<input/>")
-				.addClass("form-control")
-				.attr({
-					name:			"invariant" + i,
-					type:			"text",
-					placeholder:	"Invariant " + (i + 1),
-					required:		true
-			});
-		var varInput =
-			invInput
-				.clone()
-				.attr({
-					name:			"variant" + i,
-					placeholder:	"Variant " + (i + 1)
+	var numChildren = invVarParent.children().length;
+	var delta = count - numChildren;
+	
+	if (delta < 0) {
+		invVarParent.children().slice(numChildren + delta, numChildren).remove();
+	} else {
+		for (var i = numChildren; i < numChildren + delta; i++) {
+			var invInput =
+				$("<input/>")
+					.addClass("form-control")
+					.attr({
+						name:			"invariant" + i,
+						type:			"text",
+						placeholder:	"Invariant " + (i + 1),
+						required:		true
 				});
+			var varInput =
+				invInput
+					.clone()
+					.attr({
+						name:			"variant" + i,
+						placeholder:	"Variant " + (i + 1)
+					});
 		
-		var invDiv =
-			$("<div/>")
-				.addClass("col-sm-6")
-				.append(invInput);
-		var varDiv =
-			invDiv
-				.clone()
-				.empty()
-				.append(varInput);
+			var invDiv =
+				$("<div/>")
+					.addClass("col-sm-6")
+					.append(invInput);
+			var varDiv =
+				invDiv
+					.clone()
+					.empty()
+					.append(varInput);
 		
-		invVarParent.append(
-			$("<div/>")
-				.addClass("col-md-12")
-				.append(
-					$("<div/>")
-						.addClass("row")
-						.addClass("top-bottom-padded")
-						.append(invDiv)
-						.append(varDiv)
-				));
+			invVarParent.append(
+				$("<div/>")
+					.addClass("row")
+					.addClass("top-bottom-padded")
+					.append(invDiv)
+					.append(varDiv)
+			);
+		}
 	}
 }
 
