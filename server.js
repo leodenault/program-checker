@@ -81,22 +81,26 @@ function executeChecker(response, precondition, program, postcondition, invarian
 		});
 }
 
+// Handles GET requests for the main page
 app.get('/', function(req, res) {
-	console.log(req.url);
+	console.log("Request sent for \"" + req.url + "\"");
 	var html = fs.readFileSync("./program-checker.html", 'utf-8');
 	res.writeHead(200, {'Content-Type' : 'text/html'});
 	res.write(html);
 	res.end();
 });
 
+// Handles GET requests for the instructions. Handled in a separate
+// request to allow having instructions in a different HTML file
 app.get('/instructions', function(req, res) {
-	console.log(req.url);
+	console.log("Request sent for \"" + req.url + "\"");
 	var html = fs.readFileSync("./instructions.html", 'utf-8');
 	res.writeHead(200, {'Content-Type' : 'text/html'});
 	res.write(html);
 	res.end();
 });
 
+// Handles POST requests and sends the data to the program checker
 app.post('/', function(req, res) {
 	executeChecker(res, req.body.precondition, req.body.program,
 				req.body.postcondition, extractMultiField("invariant", req), extractMultiField("variant", req));

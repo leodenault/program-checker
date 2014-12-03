@@ -3,38 +3,43 @@ var invVarParentBlock;
 var programForm;
 var resultsPanel;
 
+// Run when the document is done loading
 $(document).ready(function () {
 	programForm = $("#programForm");
-	programForm.submit(submitForm);
+	programForm.submit(submitForm); // Set the submit call back
 	
-	var getting = $.get("/instructions");
+	var getting = $.get("/instructions"); // Fetch the instructions HTML document
 	
 	getting.done(function(data) {
-		$("body").append(data);
+		$("body").append(data); // Append the instructions modal to the body of the document
 	});
 	
 	invVarParent = $("#invariants > .col-md-12");
-	invVarParentBlock = $("#invVarParentBlock").hide();
+	invVarParentBlock = $("#invVarParentBlock").hide(); // Hide the invariants and variants
 	
-	resultsPanel = $("#resultsPanel").hide();
+	resultsPanel = $("#resultsPanel").hide(); // Hide the panel containing the proofs
 	
 	var program = $("#program");
-	program.on("input", countWhileLoops);
+	program.on("input", countWhileLoops); // Set the callback for counting the number of while loops
 	
 	countWhileLoops();
 });
 
+// Counts the number of while loops within the given program
 function countWhileLoops() {
 	var program = $("#program");
 	var text = program.val();
 	
 	var whiles = (text.match(/(\s+|^)while((\s*\()|\s+((true)|(false)))/g) || []).length;
 	
+	// If the number of while loops differs from the number
+	// of invariant and variant inputs, regenerate them
 	if (whiles != invVarParent.children().length) {
 		generateInvVarInputs(whiles);
 	}
 }
 
+// Generates sets of invariant and variant inputs according to count
 function generateInvVarInputs(count) {
 	if (count > 0) {
 		invVarParentBlock.show(300);
@@ -46,8 +51,10 @@ function generateInvVarInputs(count) {
 	var delta = count - numChildren;
 	
 	if (delta < 0) {
+		// Remove the extra inputs
 		invVarParent.children().slice(numChildren + delta, numChildren).remove();
 	} else {
+		// Add the necessary number of inputs
 		for (var i = numChildren; i < numChildren + delta; i++) {
 			var invInput =
 				$("<input/>")
@@ -87,11 +94,13 @@ function generateInvVarInputs(count) {
 	}
 }
 
+// Callback for submitting the form
 function submitForm(event) {
-	event.preventDefault();
+	event.preventDefault(); // Prevent the page from being refreshed
 
-	resultsPanel.show(300);
+	resultsPanel.show(300); // Show the proofs box
 	
+	// Send an AJAX request
 	var $form = $(this),
 		url = $form.attr('action'),
 		data = $form.serialize();
